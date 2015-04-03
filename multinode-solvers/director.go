@@ -20,7 +20,7 @@ var (
 	nodes    []string
 )
 
-type response struct {
+type Result struct {
 	FindTime  time.Duration `json:"findtime"`
 	PopTime   time.Duration `json:"poptime"`
 	SumTime   time.Duration `json:"sumtime"`
@@ -54,7 +54,7 @@ func (se *startEnd) next() (float64, float64) {
 	return se.start, se.end
 }
 
-func requester(wg *sync.WaitGroup, n string, numbers chan []float64, results chan *response) {
+func requester(wg *sync.WaitGroup, n string, numbers chan []float64, results chan *Result) {
 
 	r := <-numbers
 
@@ -76,14 +76,25 @@ func requester(wg *sync.WaitGroup, n string, numbers chan []float64, results cha
 		os.Exit(1)
 	}
 
-	result := &response{}
-	json.Unmarshal(body, result)
-	results <- result
+	Result := &Result{}
+	json.Unmarshal(body, Result)
+	results <- Result
 
 	defer wg.Done()
 }
 
+func updateGlobalResult(gr, r *Result) {
+	gr.FindTime += r.FindTime
+	gr.PopTime += r.PopTime
+	gr.SumTime += r.SumTime
+	gr.TotalTime += r.TotalTime
+	gr.Sum += r.Sum
+}
+
 func main() {
+
+	processStart := time.Now()
+
 	nNodes := len(nodes)
 
 	// Set target value, range and increment.
@@ -102,7 +113,7 @@ func main() {
 		numbers <- r
 	}
 
-	results := make(chan *response, nNodes+1)
+	results := make(chan *Result, nNodes+1)
 
 	for _, node := range nodes {
 		go requester(wg, node, numbers, results)
@@ -112,7 +123,14 @@ func main() {
 	wg.Wait()
 	close(results)
 
+	globalResult := &Result{}
 	for i := range results {
-		fmt.Println(i)
+		updateGlobalResult(globalResult, i)
 	}
+
+	fmt.Printf("\nFound answer %d in %s\n\n", 
+		globalResult.Sum, time.Since(processStart))
+	fmt.Println("Aggregate compute times:")
+	fmt.Printf("\tFound factors in %s\n", globalResult.FindTime)
+	fmt.Printf("\tSummed factors in %s\n", globalResult.SumTime)
 }
