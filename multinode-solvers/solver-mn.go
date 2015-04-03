@@ -1,24 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math"
-	"encoding/json"
 	"net/http"
 	"runtime"
-	"strings"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 var (
 	goroutines int
+	listen     string
 )
 
 func init() {
 	flag.IntVar(&goroutines, "goroutines", 1, "Number of Goroutines")
+	flag.StringVar(&listen, "listen", "127.0.0.1:9000", "Listen addr:port")
 	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
@@ -63,7 +65,7 @@ func modSumTask(wg *sync.WaitGroup, nrange chan []float64, results chan float64)
 	defer wg.Done()
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func solver(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Request Received")
 
 	r.ParseForm()
@@ -131,6 +133,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":9000", nil)
+	http.HandleFunc("/", solver)
+	http.ListenAndServe(listen, nil)
 }

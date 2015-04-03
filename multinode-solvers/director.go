@@ -1,30 +1,30 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 	"strings"
-	"encoding/json"
 	"sync"
+	"time"
 )
 
 var (
-	target     float64
-	nodeList	string
-	nodes []string
+	target   float64
+	nodeList string
+	nodes    []string
 )
 
 type response struct {
-	FindTime time.Duration `json:"findtime"`
-	PopTime time.Duration `json:"poptime"`
-	SumTime time.Duration `json:"sumtime"`
+	FindTime  time.Duration `json:"findtime"`
+	PopTime   time.Duration `json:"poptime"`
+	SumTime   time.Duration `json:"sumtime"`
 	TotalTime time.Duration `json:"totaltime"`
-	Sum int `json:"sum"`
+	Sum       int           `json:"sum"`
 }
 
 func init() {
@@ -42,7 +42,6 @@ type startEnd struct {
 	max   float64
 }
 
-
 // startEnd.next() returns the start and end
 // range values, incrementing to the next range values each call.
 func (se *startEnd) next() (float64, float64) {
@@ -54,9 +53,9 @@ func (se *startEnd) next() (float64, float64) {
 	return se.start, se.end
 }
 
-func requester(wg *sync.WaitGroup, n string, numbers chan[]float64, results chan *response) {
+func requester(wg *sync.WaitGroup, n string, numbers chan []float64, results chan *response) {
 
-	r := <- numbers
+	r := <-numbers
 
 	rangeReq := fmt.Sprintf("%f:%f", r[0], r[1])
 
@@ -68,7 +67,8 @@ func requester(wg *sync.WaitGroup, n string, numbers chan[]float64, results chan
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body); if err != nil {
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -99,14 +99,15 @@ func main() {
 		numbers <- r
 	}
 
-	results := make(chan *response, nNodes)
+	results := make(chan *response, nNodes+1)
 
 	for _, node := range nodes {
 		go requester(wg, node, numbers, results)
 	}
-	close(numbers)
 
+	close(numbers)
 	wg.Wait()
+	close(results)
 
 	for i := range results {
 		fmt.Println(i)
