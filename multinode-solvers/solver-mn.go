@@ -77,7 +77,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	se := &startEnd{}
 	se.end, _ = strconv.ParseFloat(reqRange[0], 64)
 	se.max, _ = strconv.ParseFloat(reqRange[1], 64)
-	se.incr = math.Floor(float64((int(se.max - se.end)) / goroutines) + .5)
+	se.incr = math.Floor(float64((int(se.max - se.end)) / goroutines) + 1.5)
 	rangeSize := int(se.max - se.end)
 
 	result := make(map[string]interface{})
