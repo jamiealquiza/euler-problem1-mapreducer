@@ -131,6 +131,6 @@ func main() {
 	fmt.Printf("\nFound answer %d in %s\n\n", 
 		globalResult.Sum, time.Since(processStart))
 	fmt.Println("Aggregate compute times:")
-	fmt.Printf("\tFound factors in %s\n", globalResult.FindTime)
-	fmt.Printf("\tSummed factors in %s\n", globalResult.SumTime)
+	fmt.Printf("\tFound multiples in %s\n", globalResult.FindTime)
+	fmt.Printf("\tSummed multiples in %s\n", globalResult.SumTime)
 }
