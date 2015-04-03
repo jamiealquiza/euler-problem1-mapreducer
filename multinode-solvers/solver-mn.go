@@ -48,7 +48,6 @@ func modSumTask(wg *sync.WaitGroup, nrange chan []float64, results chan float64)
 	r := <-nrange
 	nums := make([]float64, int(r[1]-r[0]))
 
-	//fmt.Println(r)
 	for n := r[0]; n < r[1]; n++ {
 		if math.Mod(n, 3) == 0 || math.Mod(n, 5) == 0 {
 			nums = append(nums, n)
@@ -86,7 +85,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// start and end range values.
 	numbers := make(chan []float64, goroutines+1)
 	for se.end < se.max {
-		fmt.Println(se.end)
 		start, end := se.next()
 		r := []float64{start, end}
 		numbers <- r
