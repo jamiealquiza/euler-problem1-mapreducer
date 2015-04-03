@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"math"
 	"os"
 	"strings"
 	"sync"
@@ -57,7 +58,9 @@ func requester(wg *sync.WaitGroup, n string, numbers chan []float64, results cha
 
 	r := <-numbers
 
-	rangeReq := fmt.Sprintf("%f:%f", r[0], r[1])
+	rangeReq := fmt.Sprintf("%d:%d", int(r[0]), int(r[1]))
+
+	fmt.Printf("Sending request for range %s to %s\n", rangeReq, n)
 
 	resp, err := http.PostForm("http://"+n,
 		url.Values{"range": []string{rangeReq}})
@@ -85,7 +88,7 @@ func main() {
 
 	// Set target value, range and increment.
 	se := &startEnd{max: target}
-	se.incr = se.max / float64(nNodes)
+	se.incr = math.Floor(se.max / float64(nNodes) + .5)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(nNodes)

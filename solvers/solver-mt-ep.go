@@ -67,7 +67,7 @@ func main() {
 	// Set target value and range increment by
 	// dividing our target value by the number of workers.
 	se := &startEnd{max: target}
-	se.incr = se.max / float64(goroutines)
+	se.incr = math.Floor(se.max / float64(goroutines) + .5)
 
 	// Load numbers channel with []float64 pairs of
 	// start and end range values.

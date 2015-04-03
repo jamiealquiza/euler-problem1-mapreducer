@@ -65,7 +65,7 @@ func modSumTask(wg *sync.WaitGroup, nrange chan []float64, results chan float64)
 	defer wg.Done()
 }
 
-func solver(w http.ResponseWriter, r *http.Request) {
+func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Request Received")
 
 	r.ParseForm()
@@ -77,7 +77,8 @@ func solver(w http.ResponseWriter, r *http.Request) {
 	se := &startEnd{}
 	se.end, _ = strconv.ParseFloat(reqRange[0], 64)
 	se.max, _ = strconv.ParseFloat(reqRange[1], 64)
-	se.incr = float64((int(se.max - se.end)) / goroutines)
+	se.incr = math.Floor(float64((int(se.max - se.end)) / goroutines) + .5)
+	rangeSize := int(se.max - se.end)
 
 	result := make(map[string]interface{})
 
@@ -95,7 +96,7 @@ func solver(w http.ResponseWriter, r *http.Request) {
 	result["poptime"] = time.Since(processStart)
 	close(numbers)
 	fmt.Printf("Populated %d numbers in %s\n",
-		int(se.max), result["poptime"])
+		rangeSize, result["poptime"])
 
 	// Start n workers Goroutines.
 	fmt.Printf("Starting %d Goroutines\n", goroutines)
@@ -133,6 +134,6 @@ func solver(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", solver)
+	http.HandleFunc("/", handler)
 	http.ListenAndServe(listen, nil)
 }

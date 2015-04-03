@@ -43,10 +43,10 @@ func main() {
 	processStart := time.Now()
 
 	numbers := make(chan float64, int(target)+1)
-	for i := float64(0); i < target+float64(1); i++ {
+	for i := float64(0); i < target; i++ {
 		numbers <- i
 	}
-	fmt.Println(len(numbers))
+
 	close(numbers)
 	fmt.Printf("Populated %d numbers in %s\n",
 		int(target), time.Since(processStart))
