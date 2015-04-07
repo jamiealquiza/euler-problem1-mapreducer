@@ -18,20 +18,13 @@ func init() {
 
 func main() {
 	processStart := time.Now()
+	var sum float64
 
-	var num = make([]float64, 0, int(target))
 	for i := float64(1); i < target; i++ {
 		if math.Mod(i, 3) == 0 || math.Mod(i, 5) == 0 {
-			num = append(num, i)
+			sum += i
 		}
 	}
-	fmt.Printf("Found values in %s\n", time.Since(processStart))
 
-	sumStart := time.Now()
-	var n float64
-	for _, val := range num {
-		n += val
-	}
-	fmt.Printf("Calculated sum %d in %s\n", int(n), time.Since(sumStart))
-	fmt.Printf("Total run time %s\n", time.Since(processStart))
+	fmt.Printf("Found sum %d in %s\n", int(sum), time.Since(processStart))
 }
