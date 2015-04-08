@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+	"runtime/pprof"
+	"os"
 )
 
 var (
@@ -25,34 +27,36 @@ func isMultiple(n float64) bool {
 	if math.Mod(n, 3) == 0 || math.Mod(n, 5) == 0 {
 			return true
 	}
+
 	return false
 }
 
 func moder(wg *sync.WaitGroup, portion int, a, b chan float64, results chan float64) {
 	var nums = make([]float64, 0, portion)
 
-	var aClosed, bClosed bool
+	
 	for {
-		if aClosed && bClosed {
-			break
-		}
 		select {
-		case n, ok := <- a:
-			if !ok {
-				aClosed = true
-			}
+		case n := <- a:
 			if isMultiple(n) {
 				nums = append(nums, n)
 			}
-		case n, ok := <- b:
-			if !ok {
-				bClosed = true
-			}
+		case n := <- b:
 			if isMultiple(n) {
 				nums = append(nums, n)
 			}
 		}
 	}
+	
+	/*count := 1
+	for i := float64(0); i < target/2; i++ {
+		if count % 2 == 0 {
+			numbersA <- i
+		} else {
+			numbersB <- i
+		}
+		count++
+	}*/
 
 	var sum float64
 	for _, val := range nums {
@@ -64,6 +68,10 @@ func moder(wg *sync.WaitGroup, portion int, a, b chan float64, results chan floa
 }
 
 func main() {
+	f, _ := os.Create("out")
+	pprof.StartCPUProfile(f)
+    defer pprof.StopCPUProfile()
+
 	processStart := time.Now()
 
 	numbersA := make(chan float64, int(target))

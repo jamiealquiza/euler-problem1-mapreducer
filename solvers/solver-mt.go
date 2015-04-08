@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"os"
 	"runtime"
+	"runtime/pprof"
 	"sync"
 	"time"
 )
@@ -12,11 +14,13 @@ import (
 var (
 	target     float64
 	goroutines int
+	profile    bool
 )
 
 func init() {
 	flag.Float64Var(&target, "target", 1000, "Eueler Project problem #1 target limit")
 	flag.IntVar(&goroutines, "goroutines", 1, "Number of Goroutines")
+	flag.BoolVar(&profile, "profile", false, "Run pprof")
 	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
@@ -40,6 +44,17 @@ func moder(wg *sync.WaitGroup, portion int, numbers chan float64, results chan f
 }
 
 func main() {
+	flag.Parse()
+	if profile {
+		f, err := os.Create(os.Args[0] + ".prof")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
 	processStart := time.Now()
 
 	numbers := make(chan float64, int(target)+1)

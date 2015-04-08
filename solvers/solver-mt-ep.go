@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"os"
 	"runtime"
+	"runtime/pprof"
 	"sync"
 	"time"
 )
@@ -12,11 +14,13 @@ import (
 var (
 	target     float64
 	goroutines int
+	profile    bool
 )
 
 func init() {
 	flag.Float64Var(&target, "target", 1000, "Eueler Project problem #1 target limit")
 	flag.IntVar(&goroutines, "goroutines", 1, "Number of Goroutines")
+	flag.BoolVar(&profile, "profile", false, "Run pprof")
 	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
@@ -62,12 +66,23 @@ func modSumTask(wg *sync.WaitGroup, nrange chan []float64, results chan float64)
 }
 
 func main() {
+	flag.Parse()
+	if profile {
+		f, err := os.Create(os.Args[0] + ".prof")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
 	processStart := time.Now()
 
 	// Set target value and range increment by
 	// dividing our target value by the number of workers.
 	se := &startEnd{max: target}
-	se.incr = math.Floor(se.max / float64(goroutines) + 1.5)
+	se.incr = math.Floor(se.max/float64(goroutines) + 1.5)
 
 	// Load numbers channel with []float64 pairs of
 	// start and end range values.
