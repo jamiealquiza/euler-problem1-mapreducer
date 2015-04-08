@@ -44,7 +44,6 @@ func moder(wg *sync.WaitGroup, portion int, numbers chan float64, results chan f
 }
 
 func main() {
-	flag.Parse()
 	if profile {
 		f, err := os.Create(os.Args[0] + ".prof")
 		if err != nil {

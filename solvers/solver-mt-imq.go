@@ -33,32 +33,13 @@ func isMultiple(n float64) bool {
 	return false
 }
 
-func moder(wg *sync.WaitGroup, portion int, a, b chan float64, results chan float64) {
+func moder(wg *sync.WaitGroup, portion int, numbers chan float64, results chan float64) {
 	var nums = make([]float64, 0, portion)
 
-	var aClosed, bClosed bool
-	count := 1
-	var n float64
-	var ok bool
-	for {
-		if aClosed && bClosed {
-			break
-		}
-		if count%2 == 0 {
-			n, ok = <-a
-			if !ok {
-				aClosed = true
-			}
-		} else {
-			n, ok = <-b
-			if !ok {
-				bClosed = true
-			}
-		}
-		if isMultiple(n) {
+	for n := range numbers {
+		if math.Mod(n, 3) == 0 || math.Mod(n, 5) == 0 {
 			nums = append(nums, n)
 		}
-		count++
 	}
 
 	var sum float64
@@ -71,7 +52,6 @@ func moder(wg *sync.WaitGroup, portion int, a, b chan float64, results chan floa
 }
 
 func main() {
-	flag.Parse()
 	if profile {
 		f, err := os.Create(os.Args[0] + ".prof")
 		if err != nil {
@@ -114,7 +94,11 @@ func main() {
 
 	findStart := time.Now()
 	for i := 0; i < goroutines; i++ {
-		go moder(wg, int(target)/goroutines, numbersA, numbersB, results)
+		if i%2 == 0 {
+			go moder(wg, int(target)/goroutines, numbersA, results)
+		} else {
+			go moder(wg, int(target)/goroutines, numbersB, results)
+		}
 	}
 
 	wg.Wait()

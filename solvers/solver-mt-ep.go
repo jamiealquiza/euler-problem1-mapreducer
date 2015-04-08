@@ -66,7 +66,6 @@ func modSumTask(wg *sync.WaitGroup, nrange chan []float64, results chan float64)
 }
 
 func main() {
-	flag.Parse()
 	if profile {
 		f, err := os.Create(os.Args[0] + ".prof")
 		if err != nil {
