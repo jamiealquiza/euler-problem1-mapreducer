@@ -4,28 +4,30 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"os"
 	"runtime"
+	"runtime/pprof"
 	"sync"
 	"time"
-	"runtime/pprof"
-	"os"
 )
 
 var (
 	target     float64
 	goroutines int
+	profile    bool
 )
 
 func init() {
 	flag.Float64Var(&target, "target", 1000, "Eueler Project problem #1 target limit")
 	flag.IntVar(&goroutines, "goroutines", 1, "Number of Goroutines")
+	flag.BoolVar(&profile, "profile", false, "Run pprof")
 	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 func isMultiple(n float64) bool {
 	if math.Mod(n, 3) == 0 || math.Mod(n, 5) == 0 {
-			return true
+		return true
 	}
 
 	return false
@@ -34,29 +36,30 @@ func isMultiple(n float64) bool {
 func moder(wg *sync.WaitGroup, portion int, a, b chan float64, results chan float64) {
 	var nums = make([]float64, 0, portion)
 
-	
+	var aClosed, bClosed bool
+	count := 1
+	var n float64
+	var ok bool
 	for {
-		select {
-		case n := <- a:
-			if isMultiple(n) {
-				nums = append(nums, n)
+		if aClosed && bClosed {
+			break
+		}
+		if count%2 == 0 {
+			n, ok = <-a
+			if !ok {
+				aClosed = true
 			}
-		case n := <- b:
-			if isMultiple(n) {
-				nums = append(nums, n)
+		} else {
+			n, ok = <-b
+			if !ok {
+				bClosed = true
 			}
 		}
-	}
-	
-	/*count := 1
-	for i := float64(0); i < target/2; i++ {
-		if count % 2 == 0 {
-			numbersA <- i
-		} else {
-			numbersB <- i
+		if isMultiple(n) {
+			nums = append(nums, n)
 		}
 		count++
-	}*/
+	}
 
 	var sum float64
 	for _, val := range nums {
@@ -68,18 +71,25 @@ func moder(wg *sync.WaitGroup, portion int, a, b chan float64, results chan floa
 }
 
 func main() {
-	f, _ := os.Create("out")
-	pprof.StartCPUProfile(f)
-    defer pprof.StopCPUProfile()
+	flag.Parse()
+	if profile {
+		f, err := os.Create(os.Args[0] + ".prof")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	processStart := time.Now()
 
-	numbersA := make(chan float64, int(target))
-	numbersB := make(chan float64, int(target))
+	numbersA := make(chan float64, int(target)/2)
+	numbersB := make(chan float64, int(target)/2)
 
 	count := 1
-	for i := float64(0); i < target/2; i++ {
-		if count % 2 == 0 {
+	for i := float64(0); i < target; i++ {
+		if count%2 == 0 {
 			numbersA <- i
 		} else {
 			numbersB <- i
@@ -89,11 +99,11 @@ func main() {
 
 	close(numbersA)
 	close(numbersB)
-	
+
 	fmt.Printf("Populated %d numbers in %s\n",
 		int(target), time.Since(processStart))
 
-	fmt.Printf("\tQueue A length: %d\n\tQueue B length: %d\n", 
+	fmt.Printf("\tQueue A length: %d\n\tQueue B length: %d\n",
 		len(numbersA), len(numbersB))
 
 	fmt.Printf("Starting %d Goroutines\n", goroutines)
@@ -119,5 +129,5 @@ func main() {
 
 	fmt.Printf("Calculated sum %d in %s\n", int(sum), time.Since(sumStart))
 	fmt.Printf("Total run time %s\n", time.Since(processStart))
-	
+
 }
