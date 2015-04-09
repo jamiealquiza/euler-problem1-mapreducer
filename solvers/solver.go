@@ -12,7 +12,7 @@ var (
 )
 
 func init() {
-	flag.Float64Var(&target, "target", 1000, "Eueler Project problem #1 target limit")
+	flag.Float64Var(&target, "target", 1000, "Euler Project problem #1 target limit")
 	flag.Parse()
 }
 

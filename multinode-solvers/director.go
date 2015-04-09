@@ -29,7 +29,7 @@ type Result struct {
 }
 
 func init() {
-	flag.Float64Var(&target, "target", 1000, "Eueler Project problem #1 target limit")
+	flag.Float64Var(&target, "target", 1000, "Euler Project problem #1 target limit")
 	flag.StringVar(&nodeList, "nodes", "127.0.0.1:9000", "Comma delimited list of nodes")
 	flag.Parse()
 

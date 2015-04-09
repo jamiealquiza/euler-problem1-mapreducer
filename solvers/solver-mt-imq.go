@@ -18,7 +18,7 @@ var (
 )
 
 func init() {
-	flag.Float64Var(&target, "target", 1000, "Eueler Project problem #1 target limit")
+	flag.Float64Var(&target, "target", 1000, "Euler Project problem #1 target limit")
 	flag.IntVar(&goroutines, "goroutines", 1, "Number of Goroutines")
 	flag.BoolVar(&profile, "profile", false, "Run pprof")
 	flag.Parse()
